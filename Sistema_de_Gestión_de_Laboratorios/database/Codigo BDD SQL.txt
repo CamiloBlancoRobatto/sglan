@@ -1,0 +1,157 @@
+-- Creación de la base de datos
+CREATE DATABASE IF NOT EXISTS bddsglab6;
+USE bddsglab6;
+-- Tabla para laboratorios
+CREATE TABLE Laboratorios (
+    idLaboratorio INT(2) PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    comentario VARCHAR(255)
+);
+-- Tabla Usuarios
+CREATE TABLE Usuarios (
+    id INT(5) PRIMARY KEY AUTO_INCREMENT,
+    ci INT(8) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    idTipoUsuario INT(1) NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    fechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fechaModificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+-- Tabla Equipos
+CREATE TABLE Equipos (
+    serialNumber INT(8) PRIMARY KEY,
+    hostname VARCHAR(100) NOT NULL,
+    CPU VARCHAR(100) NOT NULL,
+    RAM INT(4) NOT NULL,
+    diskType VARCHAR(50) NOT NULL,
+    diskTotal INT(4) NOT NULL,
+    idLaboratorio INT(2),
+    FOREIGN KEY (idLaboratorio) REFERENCES Laboratorios(idLaboratorio)
+);
+-- Tabla EquiposPerifericos
+CREATE TABLE EquiposPerifericos (
+    idEquipoPeriferico INT(5) PRIMARY KEY AUTO_INCREMENT,
+    tipo ENUM ('Monitor', 'Teclado', 'Mouse', 'TV') NOT NULL,
+    descripcion VARCHAR(255),
+    conectado BOOLEAN DEFAULT TRUE,
+    serialNumberEquipo INT(8),
+    FOREIGN KEY (serialNumberEquipo) REFERENCES Equipos(serialNumber)
+);
+-- Tabla Registro 
+CREATE TABLE Registro (
+    idRegistro INT(8) PRIMARY KEY AUTO_INCREMENT,
+    serialNumber INT(8) NOT NULL,
+    idUsuario INT(5) NOT NULL,
+    fecha INT(20) NOT NULL,
+    estado INT(1) NOT NULL,
+    IP VARCHAR(255),
+    diskFree INT(4),
+    descripcion VARCHAR(255),
+    FOREIGN KEY (serialNumber) REFERENCES Equipos(serialNumber),
+    FOREIGN KEY (idUsuario) REFERENCES Usuarios(id)
+);
+-- Inserts para Laboratorios
+INSERT INTO Laboratorios (nombre, comentario) VALUES
+('Laboratorio 1', 'Laboratorio de informática básica'),
+('Laboratorio 2', 'Laboratorio de programación'),
+('Laboratorio 3', 'Laboratorio de redes'),
+('Laboratorio 4', 'Laboratorio de investigación'),
+('Laboratorio 5', 'Laboratorio multimedia');
+-- Inserts para Usuarios
+INSERT INTO Usuarios (ci, nombre, email, password, idTipoUsuario, activo) VALUES
+(12345678, 'Juan Pérez', 'juan.perez@email.com', 'Password1', 1, TRUE),
+(23456789, 'María García', 'maria.garcia@email.com', 'Password1', 2, TRUE),
+(34567890, 'Carlos López', 'carlos.lopez@email.com', 'Password1', 1, TRUE),
+(45678901, 'Ana Rodríguez', 'ana.rodriguez@email.com', 'Password1', 3, TRUE),
+(56789012, 'Pedro Martínez', 'pedro.martinez@email.com', 'Password1', 2, TRUE);
+-- Inserts para Equipos
+INSERT INTO Equipos (serialNumber, hostname, CPU, RAM, diskType, diskTotal, idLaboratorio) VALUES
+(10000001, 'PC-LAB-A-01', 'Intel Core i5-10400', 8, 'SSD', 256, 1),
+(10000002, 'PC-LAB-B-01', 'AMD Ryzen 5 3600', 16, 'SSD', 512, 2),
+(10000003, 'PC-LAB-C-01', 'Intel Core i7-10700', 32, 'NVMe', 1000, 3),
+(10000004, 'PC-LAB-D-01', 'AMD Ryzen 7 3700X', 16, 'HDD', 2000, 4),
+(10000005, 'PC-LAB-E-01', 'Intel Core i9-10900', 64, 'NVMe', 2000, 5);
+-- Inserts para EquiposPerifericos
+INSERT INTO EquiposPerifericos (tipo, descripcion, conectado, serialNumberEquipo) VALUES
+('Teclado', 'Teclado mecánico RGB', TRUE, 10000001),
+('Mouse', 'Mouse óptico inalámbrico', TRUE, 10000001),
+('Monitor', 'Monitor LED 24"', TRUE, 10000001),
+('Teclado', 'Teclado multimedia', TRUE, 10000002),
+('Monitor', 'Monitor 27" 4K', TRUE, 10000003);
+-- Inserts para Registro con epoch time (fecha como INT)
+INSERT INTO Registro (serialNumber, idUsuario, fecha, estado, IP, diskFree, descripcion) VALUES
+(10000001, 1, 1737369000, 1, '192.168.1.101', 120, 'Equipo encendido correctamente'),        -- 20/09/2025 08:30:00
+(10000002, 2, 1737371700, 1, '192.168.1.102', 380, 'Inicio de sesión exitoso'),             -- 20/09/2025 09:15:00
+(10000003, 3, 1737374400, 0, '192.168.1.103', 750, 'Equipo apagado por mantenimiento'),     -- 20/09/2025 10:00:00
+(10000004, 4, 1737379200, 1, '192.168.1.104', 1500, 'Nuevo software instalado'),            -- 20/09/2025 11:20:00
+(10000005, 5, 1737389100, 1, '192.168.1.105', 1800, 'Equipo en uso normal');
+-- 20/09/2025 14:45:00
+
+
+-- Eliminar usuarios si existen
+DROP USER IF EXISTS 'sgapp_login'@'localhost';
+DROP USER IF EXISTS 'sgapp_estudiante'@'localhost';
+DROP USER IF EXISTS 'sgapp_docente'@'localhost';
+DROP USER IF EXISTS 'sgapp_admin'@'localhost';
+DROP USER IF EXISTS 'sgapp_backup'@'localhost';
+
+-- 1. Usuario para login
+CREATE USER 'sgapp_login'@'localhost' IDENTIFIED BY 'LoginUsuario123!';
+GRANT SELECT ON bddsglab6.Usuarios TO 'sgapp_login'@'localhost';
+
+-- 2. Usuario para estudiantes
+CREATE USER 'sgapp_estudiante'@'localhost' IDENTIFIED BY 'Estudiante1234!';
+GRANT SELECT ON bddsglab6.Equipos TO 'sgapp_estudiante'@'localhost';
+GRANT SELECT ON bddsglab6.Laboratorios TO 'sgapp_estudiante'@'localhost';
+GRANT SELECT, INSERT ON bddsglab6.Registro TO 'sgapp_estudiante'@'localhost';
+GRANT SELECT ON bddsglab6.EquiposPerifericos TO 'sgapp_estudiante'@'localhost';
+
+-- 3. Usuario para docentes
+CREATE USER 'sgapp_docente'@'localhost' IDENTIFIED BY 'DocenteITI123!';
+GRANT SELECT, INSERT, UPDATE ON bddsglab6.* TO 'sgapp_docente'@'localhost';
+REVOKE DELETE ON bddsglab6.* FROM 'sgapp_docente'@'localhost';
+REVOKE DROP ON bddsglab6.* FROM 'sgapp_docente'@'localhost';
+REVOKE ALTER ON bddsglab6.* FROM 'sgapp_docente'@'localhost';
+REVOKE CREATE ON bddsglab6.* FROM 'sgapp_docente'@'localhost';
+
+-- 4. Usuario para administradores
+CREATE USER 'sgapp_admin'@'localhost' IDENTIFIED BY 'AdministradorITI!';
+GRANT SELECT, INSERT, UPDATE, DELETE ON bddsglab6.* TO 'sgapp_admin'@'localhost';
+GRANT EXECUTE ON bddsglab6.* TO 'sgapp_admin'@'localhost';
+
+-- 5. Usuario para backups
+CREATE USER 'sgapp_backup'@'localhost' IDENTIFIED BY 'BackupITIUTU!';
+GRANT SELECT ON bddsglab6.* TO 'sgapp_backup'@'localhost';
+-- Aplicar cambios
+FLUSH PRIVILEGES;
+
+-- Inserts adicionales con fechas dispersas (epoch time)
+INSERT INTO Registro (serialNumber, idUsuario, fecha, estado, IP, diskFree, descripcion) VALUES
+(10000001, 1, 1737285300, 1, '192.168.1.101', 110, 'Inicio de sesión matutino'),            -- 19/09/2025 08:15:00
+(10000002, 2, 1737289800, 1, '192.168.1.102', 370, 'Uso normal del equipo'),                -- 19/09/2025 09:30:00
+(10000003, 3, 1737294300, 0, '192.168.1.103', 720, 'Apagado programado'),                   -- 19/09/2025 10:45:00
+(10000001, 1, 1737310800, 1, '192.168.1.101', 105, 'Sesión de tarde'),                      -- 19/09/2025 14:20:00
+(10000004, 4, 1737318600, 1, '192.168.1.104', 1480, 'Trabajo de investigación'),            -- 19/09/2025 16:30:00
+(10000005, 5, 1737209400, 1, '192.168.1.105', 1750, 'Uso multimedia'),                      -- 18/09/2025 11:10:00
+(10000002, 2, 1737217500, 1, '192.168.1.102', 360, 'Almuerzo y regreso'),                   -- 18/09/2025 13:45:00
+(10000003, 3, 1737127200, 1, '192.168.1.103', 700, 'Mantenimiento completado'),             -- 17/09/2025 15:20:00
+(10000001, 1, 1737037800, 1, '192.168.1.101', 100, 'Inicio de semana'),                     -- 16/09/2025 08:30:00
+(10000004, 4, 1737044100, 0, '192.168.1.104', 1450, 'Reinicio por actualizaciones'),        -- 16/09/2025 10:15:00
+(10000005, 5, 1736948400, 1, '192.168.1.105', 1700, 'Trabajo fin de semana'),               -- 15/09/2025 12:40:00
+(10000002, 2, 1736862900, 1, '192.168.1.102', 350, 'Domingo de trabajo'),                   -- 14/09/2025 09:55:00
+(10000003, 3, 1736778300, 1, '192.168.1.103', 680, 'Sábado productivo'),                    -- 13/09/2025 14:25:00
+(10000001, 1, 1736799000, 0, '192.168.1.101', 95, 'Apagado final del día'),                 -- 13/09/2025 20:10:00
+(10000004, 4, 1736691000, 1, '192.168.1.104', 1420, 'Reunión virtual'),                     -- 12/09/2025 11:30:00
+(10000005, 5, 1736601600, 1, '192.168.1.105', 1650, 'Presentación multimedia'),             -- 11/09/2025 13:20:00
+(10000002, 2, 1736516700, 1, '192.168.1.102', 340, 'Análisis de datos'),                    -- 10/09/2025 15:45:00
+(10000003, 3, 1736424300, 0, '192.168.1.103', 650, 'Mantenimiento preventivo'),             -- 09/09/2025 10:05:00
+(10000001, 1, 1736337000, 1, '192.168.1.101', 90, 'Inicio temprano'),                       -- 08/09/2025 08:50:00
+(10000004, 4, 1736252100, 1, '192.168.1.104', 1400, 'Proyecto especial'),                   -- 07/09/2025 12:15:00
+(10000005, 5, 1736166600, 1, '192.168.1.105', 1600, 'Edición de video'),                    -- 06/09/2025 14:30:00
+(10000002, 2, 1736080800, 1, '192.168.1.102', 330, 'Finalización de tareas'),               -- 05/09/2025 16:40:00
+(10000003, 3, 1735997100, 1, '192.168.1.103', 630, 'Configuración nueva'),                  -- 04/09/2025 09:25:00
+(10000001, 1, 1735912200, 0, '192.168.1.101', 85, 'Reinicio necesario'),                    -- 03/09/2025 11:50:00
+(10000004, 4, 1735824900, 1, '192.168.1.104', 1380, 'Inicio de mes');
+-- 02/09/2025 13:35:00

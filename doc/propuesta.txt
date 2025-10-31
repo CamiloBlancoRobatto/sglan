@@ -1,0 +1,5 @@
+Cambio de horario de Linux para los 
+lunes a las 7:45hs a 10:10hs
+
+Y los jueves entrar con php a las 
+7:45hs saliendo a las 11:55hs

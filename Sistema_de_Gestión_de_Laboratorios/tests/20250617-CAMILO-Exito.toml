@@ -1,0 +1,29 @@
+﻿[info_general]
+fecha = "20250617"
+nombre_pc = "CAMILO"
+estado_conexion = "Exito"
+
+[sistema_operativo]
+nombre = "Microsoft Windows 11 Pro"
+version = "10.0.26100"
+
+[red]
+ip = "192.168.1.2"
+mascara = "24"
+default_gateway = "192.168.1.1"
+
+[hardware]
+cpu = "AMD Ryzen 5 5600G with Radeon Graphics         "
+ram_gb = 15.37
+disco_c_gb = 930.63
+
+[diagnostico_red]
+LAN = "Exito"
+WAN = "Exito"
+DHCP = "Enabled Enabled"
+DNS = "Exito"
+
+[recursos_disponibles]
+cpu_uso_porcentaje = 
+ram_uso_porcentaje = 52.12
+disco_c_uso_porcentaje = 54.91
